@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Follow-Up - AcxiomCRM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fa-solid fa-calendar-plus me-2"></i>Schedule Activity / Follow-Up</h2>
+    <a href="{{ url_for('followups.list_followups') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back to List</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('followups.create') }}" class="needs-validation" novalidate>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Target Entity Type <span class="text-danger">*</span></label>
+                    <select id="target_type" name="target_type" class="form-select" onchange="updateTargetSelect(this.value)">
+                        {% for tt in target_types %}
+                            <option value="{{ tt }}" {% if preset_target_type == tt %}selected{% endif %}>{{ tt }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Target Record <span class="text-danger">*</span></label>
+                    <select id="target_id" name="target_id" class="form-select" required>
+                        <!-- Populated by JavaScript -->
+                    </select>
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Subject / Title <span class="text-danger">*</span></label>
+                    <input type="text" name="subject" class="form-control" placeholder="e.g. Discovery Call / Contract Review" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Activity Type</label>
+                    <select name="type" class="form-select">
+                        {% for t in types %}
+                            <option value="{{ t }}">{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Scheduled Date & Time <span class="text-danger">*</span></label>
+                    <input type="datetime-local" name="follow_up_date" class="form-control" required>
+                    <div class="form-text text-muted">New follow-up date cannot be in the past unless authorized.</div>
+                </div>
+
+                {% if current_user.has_role('Admin', 'Manager') %}
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Assigned User</label>
+                    <select name="assigned_to_id" class="form-select">
+                        {% for rep in sales_reps %}
+                            <option value="{{ rep.id }}" {% if current_user.id == rep.id %}selected{% endif %}>{{ rep.username }} ({{ rep.role }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        <input type="checkbox" name="allow_past" value="1" class="form-check-input" id="allow_past">
+                        <label class="form-check-label text-muted" for="allow_past">Manager Override: Allow scheduling in historical past</label>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Notes & Agenda</label>
+                    <textarea name="notes" class="form-control" rows="3" placeholder="Meeting details, phone numbers, background notes..."></textarea>
+                </div>
+            </div>
+
+            <div class="mt-4 border-top pt-3 text-end">
+                <a href="{{ url_for('followups.list_followups') }}" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-floppy-disk me-1"></i>Save Follow-Up</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const customerData = [
+    {% for c in customers %} { id: {{ c.id }}, label: "#{{ c.id }} - {{ c.name }} ({{ c.email }})" }, {% endfor %}
+];
+const leadData = [
+    {% for l in leads %} { id: {{ l.id }}, label: "#{{ l.id }} - {{ l.contact_name }} [{{ l.status }}]" }, {% endfor %}
+];
+const oppData = [
+    {% for o in opportunities %} { id: {{ o.id }}, label: "#{{ o.id }} - {{ o.name }} (${{ o.amount }})" }, {% endfor %}
+];
+
+const presetId = {{ preset_target_id or 'null' }};
+
+function updateTargetSelect(targetType) {
+    const sel = document.getElementById('target_id');
+    sel.innerHTML = '';
+    
+    let list = customerData;
+    if (targetType === 'Lead') list = leadData;
+    if (targetType === 'Opportunity') list = oppData;
+
+    if (list.length === 0) {
+        sel.innerHTML = '<option value="">No records available</option>';
+        return;
+    }
+
+    list.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.id;
+        opt.textContent = item.label;
+        if (presetId && item.id === presetId) {
+            opt.selected = true;
+        }
+        sel.appendChild(opt);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    updateTargetSelect(document.getElementById('target_type').value);
+});
+</script>
+{% endblock %}

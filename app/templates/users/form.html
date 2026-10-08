@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{% if user %}Edit User #{{ user.id }}{% else %}Create User{% endif %} - AcxiomCRM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        {% if user %}
+            <i class="fa-solid fa-pen-to-square me-2"></i>Edit User: {{ user.username }}
+        {% else %}
+            <i class="fa-solid fa-user-plus me-2"></i>Create New User Account
+        {% endif %}
+    </h2>
+    <a href="{{ url_for('users.list_users') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back to List</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{% if user %}{{ url_for('users.edit', user_id=user.id) }}{% else %}{{ url_for('users.create') }}{% endif %}" class="needs-validation" novalidate>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Username <span class="text-danger">*</span></label>
+                    <input type="text" name="username" class="form-control" value="{{ user.username if user else '' }}" required minlength="3">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control" value="{{ user.email if user else '' }}" required>
+                </div>
+
+                {% if not user %}
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
+                    <input type="password" name="password" class="form-control" required minlength="8" placeholder="Admin@123456">
+                    <div class="form-text">Min 8 chars, uppercase, lowercase, digit & symbol.</div>
+                </div>
+                {% endif %}
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Primary Role <span class="text-danger">*</span></label>
+                    <select name="role" class="form-select" required>
+                        {% for r in roles %}
+                            <option value="{{ r }}" {% if user and user.role == r %}selected{% endif %}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if user %}
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Account Status</label>
+                    <div class="form-check mt-2">
+                        <input type="checkbox" name="is_active" value="1" class="form-check-input" id="is_active" {% if user.is_active %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">Account Active</label>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-4 border-top pt-3 text-end">
+                <a href="{{ url_for('users.list_users') }}" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-floppy-disk me-1"></i>Save User Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

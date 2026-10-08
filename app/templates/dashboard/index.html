@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AcxiomCRM{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center pb-2 mb-4 border-bottom">
+    <h1 class="h2"><i class="fa-solid fa-gauge me-2 text-primary"></i>Executive Dashboard</h1>
+    
+    <!-- Date Filter Form -->
+    <form method="GET" action="{{ url_for('dashboard.index') }}" class="d-flex align-items-center gap-2">
+        <select name="date_range" class="form-select form-select-sm" onchange="toggleCustomDates(this.value)">
+            <option value="all" {% if range_option == 'all' %}selected{% endif %}>All Time</option>
+            <option value="today" {% if range_option == 'today' %}selected{% endif %}>Today</option>
+            <option value="this_week" {% if range_option == 'this_week' %}selected{% endif %}>This Week</option>
+            <option value="this_month" {% if range_option == 'this_month' %}selected{% endif %}>This Month</option>
+            <option value="custom" {% if range_option == 'custom' %}selected{% endif %}>Custom Range</option>
+        </select>
+
+        <div id="customDateGroup" class="d-flex gap-1 align-items-center" style="display: {% if range_option == 'custom' %}flex{% else %}none{% endif %} !important;">
+            <input type="date" name="start_date" class="form-control form-control-sm" value="{{ start_date or '' }}">
+            <span class="text-muted">-</span>
+            <input type="date" name="end_date" class="form-control form-control-sm" value="{{ end_date or '' }}">
+        </div>
+
+        <button type="submit" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-filter me-1"></i>Filter</button>
+    </form>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-lg-2">
+        <div class="card kpi-card p-3">
+            <div class="text-muted small fw-bold">TOTAL CUSTOMERS</div>
+            <div class="h3 mb-0 mt-2 fw-bold text-dark">{{ total_customers }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card kpi-card kpi-info p-3">
+            <div class="text-muted small fw-bold">OPEN LEADS</div>
+            <div class="h3 mb-0 mt-2 fw-bold text-info">{{ open_leads }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card kpi-card kpi-warning p-3">
+            <div class="text-muted small fw-bold">ACTIVE OPPS</div>
+            <div class="h3 mb-0 mt-2 fw-bold text-warning">{{ active_opportunities }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card kpi-card p-3">
+            <div class="text-muted small fw-bold">PENDING FOLLOWUPS</div>
+            <div class="h3 mb-0 mt-2 fw-bold text-primary">{{ pending_followups }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card kpi-card kpi-success p-3">
+            <div class="text-muted small fw-bold">TOTAL PIPELINE</div>
+            <div class="h4 mb-0 mt-2 fw-bold text-success">${{ "{:,.2f}".format(total_pipeline) }}</div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card kpi-card kpi-success p-3">
+            <div class="text-muted small fw-bold">WEIGHTED PIPELINE</div>
+            <div class="h4 mb-0 mt-2 fw-bold text-success">${{ "{:,.2f}".format(weighted_pipeline) }}</div>
+        </div>
+    </div>
+</div>
+
+{% if admin_stats %}
+<!-- Admin Security & System Statistics -->
+<div class="alert alert-light border mb-4">
+    <h6 class="fw-bold mb-2 text-secondary"><i class="fa-solid fa-shield-halved me-2"></i>Admin Security Summary</h6>
+    <div class="row text-center">
+        <div class="col"><strong>Total Users:</strong> {{ admin_stats.total_users }}</div>
+        <div class="col"><strong>Active Users:</strong> <span class="text-success">{{ admin_stats.active_users }}</span></div>
+        <div class="col"><strong>Locked Accounts:</strong> <span class="text-danger">{{ admin_stats.locked_users }}</span></div>
+        <div class="col"><strong>Audit Records:</strong> {{ admin_stats.total_audits }}</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Charts & Tables Row -->
+<div class="row g-4">
+    <!-- Pipeline Stage Distribution Chart -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="fa-solid fa-chart-column me-2"></i>Opportunity Pipeline Breakdown</div>
+            <div class="card-body">
+                <canvas id="pipelineChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lead Status Distribution Chart -->
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><i class="fa-solid fa-chart-pie me-2"></i>Lead Status Breakdown</div>
+            <div class="card-body">
+                <canvas id="leadStatusChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Follow-Ups Table -->
+<div class="card mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fa-solid fa-calendar-day me-2"></i>Upcoming Activity Schedule</span>
+        <a href="{{ url_for('followups.create') }}" class="btn btn-sm btn-primary"><i class="fa-solid fa-plus me-1"></i>Schedule Activity</a>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Target</th>
+                        <th>Subject</th>
+                        <th>Type</th>
+                        <th>Assigned User</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in recent_followups %}
+                    <tr>
+                        <td>{{ f.follow_up_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td><span class="badge bg-secondary">{{ f.target_type }} #{{ f.target_id }}</span></td>
+                        <td>{{ f.subject }}</td>
+                        <td><i class="fa-solid fa-phone me-1"></i>{{ f.type }}</td>
+                        <td>{{ f.assigned_user.username if f.assigned_user else 'Unassigned' }}</td>
+                        <td>
+                            {% if f.status == 'Planned' %}
+                                <span class="badge bg-primary">Planned</span>
+                            {% elif f.status == 'Completed' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% elif f.status == 'Missed' %}
+                                <span class="badge bg-danger">Missed</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ f.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No upcoming activities scheduled.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleCustomDates(val) {
+    const grp = document.getElementById('customDateGroup');
+    if (val === 'custom') {
+        grp.style.setProperty('display', 'flex', 'important');
+    } else {
+        grp.style.setProperty('display', 'none', 'important');
+    }
+}
+
+// Render Pipeline Bar Chart
+const ctxPipe = document.getElementById('pipelineChart').getContext('2d');
+new Chart(ctxPipe, {
+    type: 'bar',
+    data: {
+        labels: {{ opp_stages|tojson }},
+        datasets: [{
+            label: 'Opportunity Count',
+            data: {{ stage_counts|tojson }},
+            backgroundColor: '#0d6efd'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+});
+
+// Render Lead Status Doughnut Chart
+const ctxLead = document.getElementById('leadStatusChart').getContext('2d');
+new Chart(ctxLead, {
+    type: 'doughnut',
+    data: {
+        labels: {{ lead_statuses|tojson }},
+        datasets: [{
+            data: {{ lead_counts|tojson }},
+            backgroundColor: ['#0dcaf0', '#0d6efd', '#198754', '#6c757d', '#20c997', '#dc3545']
+        }]
+    },
+    options: { responsive: true }
+});
+</script>
+{% endblock %}

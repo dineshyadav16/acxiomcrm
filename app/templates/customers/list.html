@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Customers - AcxiomCRM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fa-solid fa-address-book me-2"></i>Customer Management</h2>
+    <a href="{{ url_for('customers.create') }}" class="btn btn-primary"><i class="fa-solid fa-plus me-1"></i>Add New Customer</a>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('customers.list_customers') }}" class="row g-2 align-items-center">
+            <div class="col-md-6">
+                <input type="text" name="search" class="form-control" placeholder="Search by name, email, or phone..." value="{{ search or '' }}">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Active" {% if status_filter == 'Active' %}selected{% endif %}>Active</option>
+                    <option value="Inactive" {% if status_filter == 'Inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary w-100"><i class="fa-solid fa-magnifying-glass me-1"></i>Search</button>
+                <a href="{{ url_for('customers.list_customers') }}" class="btn btn-outline-secondary">Reset</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Customer Table -->
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Assigned Sales Exec</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in customers %}
+                    <tr>
+                        <td>#{{ customer.id }}</td>
+                        <td class="fw-bold">{{ customer.name }}</td>
+                        <td>{{ customer.email }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.assigned_sales_rep.username if customer.assigned_sales_rep else 'Unassigned' }}</td>
+                        <td>
+                            {% if customer.status == 'Active' %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('customers.view', customer_id=customer.id) }}" class="btn btn-sm btn-outline-info me-1"><i class="fa-solid fa-eye"></i> View</a>
+                            <a href="{{ url_for('customers.edit', customer_id=customer.id) }}" class="btn btn-sm btn-outline-primary"><i class="fa-solid fa-pen"></i> Edit</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">No customer records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination -->
+{% if pagination and pagination.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('customers.list_customers', page=pagination.prev_num, search=search, status=status_filter) }}">Previous</a>
+        </li>
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('customers.list_customers', page=p, search=search, status=status_filter) }}">{{ p }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('customers.list_customers', page=pagination.next_num, search=search, status=status_filter) }}">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

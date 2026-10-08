@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Lead Details - {{ lead.contact_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fa-solid fa-filter-circle-dollar me-2"></i>{{ lead.contact_name }}</h2>
+    <div>
+        {% if lead.status == 'Qualified' %}
+            <a href="{{ url_for('leads.convert', lead_id=lead.id) }}" class="btn btn-success me-1"><i class="fa-solid fa-rotate me-1"></i>Convert to Customer</a>
+        {% endif %}
+        <a href="{{ url_for('followups.create', target_type='Lead', target_id=lead.id) }}" class="btn btn-outline-success me-1"><i class="fa-solid fa-calendar-plus me-1"></i>Schedule Activity</a>
+        <a href="{{ url_for('leads.edit', lead_id=lead.id) }}" class="btn btn-primary me-1"><i class="fa-solid fa-pen me-1"></i>Edit Lead</a>
+        <a href="{{ url_for('leads.list_leads') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back</a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header"><i class="fa-solid fa-address-card me-2"></i>Lead Information</div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><th class="text-muted">Status:</th><td><span class="badge bg-primary">{{ lead.status }}</span></td></tr>
+                    <tr><th class="text-muted">Company:</th><td>{{ lead.company_name or 'N/A' }}</td></tr>
+                    <tr><th class="text-muted">Email:</th><td><a href="mailto:{{ lead.email }}">{{ lead.email }}</a></td></tr>
+                    <tr><th class="text-muted">Phone:</th><td>{{ lead.phone }}</td></tr>
+                    <tr><th class="text-muted">Source:</th><td><span class="badge bg-light text-dark border">{{ lead.source }}</span></td></tr>
+                    <tr><th class="text-muted">Priority:</th><td><span class="badge bg-warning text-dark">{{ lead.priority }}</span></td></tr>
+                    <tr><th class="text-muted">Assigned Exec:</th><td>{{ lead.assigned_sales_rep.username if lead.assigned_sales_rep else 'Unassigned' }}</td></tr>
+                    <tr><th class="text-muted">Created Date:</th><td>{{ lead.created_at.strftime('%Y-%m-%d %H:%M') }}</td></tr>
+                </table>
+                <hr>
+                <h6>Notes:</h6>
+                <p class="text-muted small">{{ lead.notes or 'No notes recorded.' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header"><i class="fa-solid fa-clock-rotate-left me-2"></i>Follow-Up Activity Timeline</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for f in followups %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-secondary me-2">{{ f.type }}</span>
+                            <strong>{{ f.subject }}</strong>
+                            <div class="text-muted small">Date: {{ f.follow_up_date.strftime('%Y-%m-%d %H:%M') }}</div>
+                        </div>
+                        <div>
+                            <span class="badge {% if f.status == 'Completed' %}bg-success{% elif f.status == 'Planned' %}bg-primary{% else %}bg-secondary{% endif %}">{{ f.status }}</span>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted py-3">No follow-up activities recorded for this lead.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

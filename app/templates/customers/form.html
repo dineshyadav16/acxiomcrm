@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}{% if customer %}Edit Customer #{{ customer.id }}{% else %}Add Customer{% endif %} - AcxiomCRM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        {% if customer %}
+            <i class="fa-solid fa-pen-to-square me-2"></i>Edit Customer: {{ customer.name }}
+        {% else %}
+            <i class="fa-solid fa-user-plus me-2"></i>Add New Customer
+        {% endif %}
+    </h2>
+    <a href="{{ url_for('customers.list_customers') }}" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-1"></i>Back to List</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{% if customer %}{{ url_for('customers.edit', customer_id=customer.id) }}{% else %}{{ url_for('customers.create') }}{% endif %}" class="needs-validation" novalidate>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Customer Full Name <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{{ customer.name if customer else '' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
+                    <input type="email" name="email" class="form-control" value="{{ customer.email if customer else '' }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
+                    <input type="text" name="phone" class="form-control" value="{{ customer.phone if customer else '' }}" placeholder="+1 (555) 000-0000" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Account Status</label>
+                    <select name="status" class="form-select">
+                        <option value="Active" {% if customer and customer.status == 'Active' %}selected{% endif %}>Active</option>
+                        <option value="Inactive" {% if customer and customer.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+
+                {% if current_user.has_role('Admin', 'Manager') %}
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Assigned Sales Executive</label>
+                    <select name="assigned_to_id" class="form-select">
+                        <option value="">Unassigned</option>
+                        {% for rep in sales_reps %}
+                            <option value="{{ rep.id }}" {% if customer and customer.assigned_to_id == rep.id %}selected{% endif %}>{{ rep.username }} ({{ rep.role }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Billing/Contact Address</label>
+                    <textarea name="address" class="form-control" rows="2">{{ customer.address if customer else '' }}</textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Notes & Description</label>
+                    <textarea name="notes" class="form-control" rows="3">{{ customer.notes if customer else '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="mt-4 border-top pt-3 text-end">
+                <a href="{{ url_for('customers.list_customers') }}" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary px-4"><i class="fa-solid fa-floppy-disk me-1"></i>Save Customer</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

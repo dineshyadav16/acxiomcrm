@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Audit Logs - AcxiomCRM{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fa-solid fa-file-shield me-2"></i>Security & Business Audit Logs</h2>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('audit.list_logs') }}" class="row g-2 align-items-center">
+            <div class="col-md-3">
+                <input type="text" name="search" class="form-control" placeholder="Search user, action, record..." value="{{ search or '' }}">
+            </div>
+            <div class="col-md-3">
+                <select name="module" class="form-select">
+                    <option value="">All Modules</option>
+                    {% for m in modules %}
+                        <option value="{{ m }}" {% if module_filter == m %}selected{% endif %}>{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="action" class="form-select">
+                    <option value="">All Actions</option>
+                    {% for a in actions %}
+                        <option value="{{ a }}" {% if action_filter == a %}selected{% endif %}>{{ a }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-secondary w-100"><i class="fa-solid fa-magnifying-glass"></i> Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped mb-0 align-middle">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Module</th>
+                        <th>Action</th>
+                        <th>Record ID</th>
+                        <th>Result</th>
+                        <th>IP Address</th>
+                        <th>Metadata / Changes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr>
+                        <td class="small">{{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                        <td class="fw-bold">{{ log.username or 'System' }}</td>
+                        <td><span class="badge bg-secondary">{{ log.module }}</span></td>
+                        <td><span class="badge bg-light text-dark border">{{ log.action }}</span></td>
+                        <td>{{ log.record_id or '-' }}</td>
+                        <td>
+                            {% if log.result == 'Success' %}
+                                <span class="badge bg-success">Success</span>
+                            {% else %}
+                                <span class="badge bg-danger">Failure</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ log.ip_address or '-' }}</td>
+                        <td class="small text-muted" style="max-width:250px; word-wrap:break-word;">{{ log.metadata_json or '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">No audit trail records found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if pagination and pagination.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('audit.list_logs', page=pagination.prev_num, search=search, module=module_filter, action=action_filter) }}">Previous</a>
+        </li>
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('audit.list_logs', page=p, search=search, module=module_filter, action=action_filter) }}">{{ p }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">&hellip;</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('audit.list_logs', page=pagination.next_num, search=search, module=module_filter, action=action_filter) }}">Next</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
