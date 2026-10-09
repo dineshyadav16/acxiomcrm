@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Schedule Follow-up | AcxiomCRM{% endblock %}
+{% block content %}
+<h1>Schedule Follow-up</h1>
+<section class="card form-card"><form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="target_type">Record Type</label><select id="target_type" name="target_type"><option>Customer</option><option>Lead</option><option>Opportunity</option></select>
+    <label for="target_id">Record ID *</label><input id="target_id" type="number" min="1" name="target_id" required>
+    <p class="help-text">Choose the ID of a record that already exists in the selected section.</p>
+    <label for="subject">Subject *</label><input id="subject" name="subject" required>
+    <label for="type">Activity Type</label><select id="type" name="type"><option>Call</option><option>Meeting</option><option>Email</option><option>Task</option></select>
+    <label for="follow_up_date">Date and Time *</label><input id="follow_up_date" type="datetime-local" name="follow_up_date" required>
+    <div class="form-actions"><button class="btn btn-success" type="submit">Schedule Follow-up</button><a class="btn btn-secondary" href="{{ url_for('sales.followups') }}">Cancel</a></div>
+</form></section>
+{% endblock %}

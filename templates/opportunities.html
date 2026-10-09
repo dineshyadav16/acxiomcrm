@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Opportunities | AcxiomCRM{% endblock %}
+{% block content %}
+<div class="page-heading"><h1>Opportunities</h1><a class="btn btn-success" href="{{ url_for('sales.opportunity_form') }}">+ New Opportunity</a></div>
+<section class="card table-card"><table>
+<thead><tr><th>ID</th><th>Name</th><th>Customer</th><th>Stage</th><th>Amount</th><th>Probability</th><th>Weighted Value</th><th>Action</th></tr></thead>
+<tbody>
+{% for opportunity in opportunities %}
+<tr>
+    <td>{{ opportunity.id }}</td><td>{{ opportunity.name }}</td><td>{{ opportunity.customer.name if opportunity.customer else "-" }}</td>
+    <td><span class="badge">{{ opportunity.stage }}</span></td>
+    <td>₹{{ "{:,.0f}".format(opportunity.amount) }}</td><td>{{ opportunity.probability }}%</td>
+    <td>₹{{ "{:,.0f}".format(opportunity.weighted_pipeline) }}</td>
+    <td><a class="btn btn-small" href="{{ url_for('sales.opportunity_form', record_id=opportunity.id) }}">Edit</a></td>
+</tr>
+{% else %}<tr><td colspan="8" class="empty">No opportunities have been added.</td></tr>{% endfor %}
+</tbody></table></section>
+{% endblock %}

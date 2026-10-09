@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Leads | AcxiomCRM{% endblock %}
+{% block content %}
+<div class="page-heading"><h1>Leads</h1><a class="btn btn-success" href="{{ url_for('leads.lead_form') }}">+ Capture Lead</a></div>
+<section class="card table-card"><table>
+<thead><tr><th>ID</th><th>Contact</th><th>Company</th><th>Email</th><th>Status</th><th>Priority</th><th>Actions</th></tr></thead>
+<tbody>
+{% for lead in leads %}
+<tr>
+    <td>{{ lead.id }}</td><td>{{ lead.contact_name }}</td><td>{{ lead.company_name or "-" }}</td><td>{{ lead.email }}</td>
+    <td><span class="badge">{{ lead.status }}</span></td><td>{{ lead.priority }}</td>
+    <td class="actions"><a class="btn btn-small" href="{{ url_for('leads.lead_form', record_id=lead.id) }}">Edit</a>
+    {% if lead.status == "Qualified" %}<a class="btn btn-small btn-success" href="{{ url_for('leads.convert_lead', record_id=lead.id) }}">Convert</a>{% endif %}</td>
+</tr>
+{% else %}<tr><td colspan="7" class="empty">No leads have been added.</td></tr>{% endfor %}
+</tbody></table></section>
+{% endblock %}

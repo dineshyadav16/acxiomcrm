@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Opportunity" if opportunity else "New Opportunity" }} | AcxiomCRM{% endblock %}
+{% block content %}
+<h1>{{ "Edit Opportunity" if opportunity else "New Opportunity" }}</h1>
+<section class="card form-card"><form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="name">Opportunity Name *</label><input id="name" name="name" value="{{ opportunity.name if opportunity else '' }}" required>
+    <label for="customer_id">Customer</label><select id="customer_id" name="customer_id"><option value="">-- No customer selected --</option>
+        {% for customer in customers %}<option value="{{ customer.id }}" {% if opportunity and opportunity.customer_id == customer.id %}selected{% endif %}>{{ customer.name }}</option>{% endfor %}
+    </select>
+    <label for="stage">Stage</label><select id="stage" name="stage">
+        {% for stage in ["Qualification", "Proposal", "Negotiation", "Won", "Lost"] %}
+        <option value="{{ stage }}" {% if opportunity and opportunity.stage == stage %}selected{% endif %}>{{ stage }}</option>
+        {% endfor %}
+    </select>
+    <label for="amount">Deal Amount (₹) *</label><input id="amount" type="number" min="1" step="1" name="amount" value="{{ opportunity.amount if opportunity else 350000 }}" required>
+    <label for="probability">Probability (%) *</label><input id="probability" type="number" min="0" max="100" name="probability" value="{{ opportunity.probability if opportunity else 20 }}" required>
+    <label for="expected_close_date">Expected Close Date *</label><input id="expected_close_date" type="date" name="expected_close_date" value="{{ opportunity.expected_close_date.strftime('%Y-%m-%d') if opportunity else '' }}" required>
+    <div class="form-actions"><button class="btn btn-success" type="submit">Save Opportunity</button><a class="btn btn-secondary" href="{{ url_for('sales.opportunities') }}">Cancel</a></div>
+</form></section>
+{% endblock %}

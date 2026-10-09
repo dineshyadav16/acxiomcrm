@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Lead" if lead else "Capture Lead" }} | AcxiomCRM{% endblock %}
+{% block content %}
+<h1>{{ "Edit Lead" if lead else "Capture Lead" }}</h1>
+<section class="card form-card"><form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="contact_name">Contact Name *</label><input id="contact_name" name="contact_name" value="{{ lead.contact_name if lead else '' }}" required>
+    <label for="company_name">Company</label><input id="company_name" name="company_name" value="{{ lead.company_name if lead else '' }}">
+    <label for="email">Email *</label><input id="email" type="email" name="email" value="{{ lead.email if lead else '' }}" required>
+    <label for="phone">Phone *</label><input id="phone" name="phone" value="{{ lead.phone if lead else '' }}" required>
+    <label for="status">Status</label><select id="status" name="status">
+        {% for status in ["New", "Contacted", "Qualified", "Unqualified", "Converted", "Lost"] %}
+        <option value="{{ status }}" {% if lead and lead.status == status %}selected{% endif %}>{{ status }}</option>
+        {% endfor %}
+    </select>
+    <label for="priority">Priority</label><select id="priority" name="priority">
+        {% for priority in ["Low", "Medium", "High"] %}
+        <option value="{{ priority }}" {% if lead and lead.priority == priority %}selected{% endif %}>{{ priority }}</option>
+        {% endfor %}
+    </select>
+    <label for="notes">Notes</label><textarea id="notes" name="notes" rows="3">{{ lead.notes if lead else '' }}</textarea>
+    <div class="form-actions"><button class="btn btn-success" type="submit">Save Lead</button><a class="btn btn-secondary" href="{{ url_for('leads.leads') }}">Cancel</a></div>
+</form></section>
+{% endblock %}

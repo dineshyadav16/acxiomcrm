@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Customers | AcxiomCRM{% endblock %}
+{% block content %}
+<div class="page-heading"><h1>Customers</h1><a class="btn btn-success" href="{{ url_for('customers.customer_form') }}">+ Add Customer</a></div>
+<section class="card table-card">
+<table>
+    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Status</th><th>Assigned to</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for customer in customers %}
+    <tr>
+        <td>{{ customer.id }}</td><td>{{ customer.name }}</td><td>{{ customer.email }}</td><td>{{ customer.phone }}</td>
+        <td><span class="badge">{{ customer.status }}</span></td>
+        <td>{{ customer.assigned_user.username if customer.assigned_user else "Unassigned" }}</td>
+        <td class="actions">
+            <a class="btn btn-small" href="{{ url_for('customers.customer_form', record_id=customer.id) }}">Edit</a>
+            <form method="post" action="{{ url_for('customers.customer_delete', record_id=customer.id) }}" class="inline-form" onsubmit="return confirm('Delete this customer?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-small btn-danger" type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {% else %}<tr><td colspan="7" class="empty">No customers have been added.</td></tr>{% endfor %}
+    </tbody>
+</table>
+</section>
+{% endblock %}

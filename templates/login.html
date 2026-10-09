@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Login | AcxiomCRM{% endblock %}
+{% block content %}
+<section class="card login-card">
+    <h1>Login to AcxiomCRM</h1>
+    <p class="muted">Use your username or email address.</p>
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="username">Username / Email</label>
+        <input id="username" name="username" autocomplete="username" required>
+        <label for="password">Password</label>
+        <input id="password" type="password" name="password" autocomplete="current-password" required>
+        <button class="btn btn-primary full-width" type="submit">Log in</button>
+    </form>
+</section>
+{% endblock %}

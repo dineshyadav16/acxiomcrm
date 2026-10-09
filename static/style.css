@@ -1,0 +1,71 @@
+:root {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #263445;
+    background: #f3f6fa;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { color: inherit; text-decoration: none; }
+.topbar { display: flex; align-items: center; gap: 22px; padding: 14px 24px; background: #20354a; color: white; flex-wrap: wrap; }
+.brand { font-size: 21px; font-weight: bold; white-space: nowrap; }
+.topbar nav { display: flex; gap: 15px; flex: 1; flex-wrap: wrap; }
+.topbar nav a { font-size: 14px; }
+.topbar a:hover { text-decoration: underline; }
+.user-area { display: flex; gap: 12px; align-items: center; font-size: 13px; }
+.container { max-width: 1200px; margin: 26px auto; padding: 0 18px 40px; }
+h1 { margin: 0 0 20px; font-size: 27px; }
+h2 { font-size: 19px; margin-top: 0; }
+.card { background: #fff; border: 1px solid #e0e6ed; border-radius: 9px; padding: 20px; box-shadow: 0 2px 7px rgba(30, 50, 70, .04); margin-bottom: 20px; }
+.page-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+.page-heading h1 { margin: 0; }
+.summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; margin-bottom: 22px; }
+.summary-card { background: #fff; border: 1px solid #e0e6ed; border-left: 4px solid #3978b8; border-radius: 8px; padding: 18px; }
+.summary-card span { display: block; color: #607083; font-size: 14px; }
+.summary-card strong { display: block; font-size: 24px; margin-top: 10px; overflow-wrap: anywhere; }
+.chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.chart-wide { grid-column: 1 / -1; }
+.chart-grid canvas { max-height: 300px; }
+.table-card { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td { padding: 11px 10px; border-bottom: 1px solid #e7ebf0; text-align: left; font-size: 14px; }
+th { background: #f7f9fb; font-weight: 700; color: #3c4e62; }
+tbody tr:hover { background: #fafcff; }
+.empty { text-align: center; color: #708095; padding: 24px; }
+.badge { display: inline-block; border-radius: 20px; background: #e6eef8; color: #275581; padding: 4px 9px; font-size: 12px; }
+.btn { display: inline-block; border: 0; border-radius: 5px; padding: 9px 13px; background: #2f6da5; color: white; font-size: 14px; cursor: pointer; text-align: center; }
+.btn:hover { filter: brightness(.95); text-decoration: none !important; }
+.btn-success { background: #237a57; }
+.btn-danger { background: #b33b3b; }
+.btn-secondary { background: #657587; }
+.btn-small { padding: 6px 9px; font-size: 12px; }
+.actions { white-space: nowrap; }
+.inline-form { display: inline; margin: 0; }
+.link-button { border: 0; padding: 0; background: transparent; color: #ffd8d8; cursor: pointer; font: inherit; }
+.form-card { max-width: 650px; }
+form label { display: block; margin: 15px 0 6px; font-weight: 600; font-size: 14px; }
+form input, form select, form textarea { width: 100%; border: 1px solid #cdd7e2; border-radius: 5px; padding: 10px; font: inherit; background: white; }
+form input:focus, form select:focus, form textarea:focus { outline: 2px solid #c7e0f8; border-color: #3978b8; }
+.form-actions { display: flex; gap: 9px; margin-top: 20px; flex-wrap: wrap; }
+.help-text, .muted { color: #718096; font-size: 13px; }
+.login-card { max-width: 420px; margin: 50px auto; }
+.login-card h1 { font-size: 23px; }
+.full-width { width: 100%; margin-top: 22px; }
+.alert { border-radius: 6px; padding: 12px 15px; margin-bottom: 14px; }
+.alert-success { background: #e1f4e8; color: #1f6638; }
+.alert-danger { background: #fde7e7; color: #8c2929; }
+.alert-warning { background: #fff2d4; color: #785510; }
+.alert-info { background: #e3f1fd; color: #245b87; }
+.report-links { display: flex; gap: 12px; flex-wrap: wrap; }
+@media (max-width: 760px) {
+    .topbar { align-items: flex-start; flex-direction: column; gap: 12px; }
+    .topbar nav { gap: 10px; }
+    .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .chart-grid { grid-template-columns: 1fr; }
+    .chart-wide { grid-column: auto; }
+    .page-heading { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 440px) {
+    .summary-grid { grid-template-columns: 1fr; }
+    .container { padding-left: 12px; padding-right: 12px; }
+}

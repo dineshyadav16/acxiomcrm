@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Follow-ups | AcxiomCRM{% endblock %}
+{% block content %}
+<div class="page-heading"><h1>Follow-ups</h1><a class="btn btn-success" href="{{ url_for('sales.followup_create') }}">+ Schedule Activity</a></div>
+<section class="card table-card"><table>
+<thead><tr><th>Date and Time</th><th>Target</th><th>Subject</th><th>Type</th><th>Status</th><th>Action</th></tr></thead>
+<tbody>
+{% for followup in followups %}
+<tr>
+    <td>{{ followup.follow_up_date.strftime('%d %b %Y, %H:%M') }}</td><td>{{ followup.target_type }} #{{ followup.target_id }}</td>
+    <td>{{ followup.subject }}</td><td>{{ followup.type }}</td><td><span class="badge">{{ followup.status }}</span></td>
+    <td>{% if followup.status == "Planned" %}<form method="post" action="{{ url_for('sales.followup_complete', record_id=followup.id) }}" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small btn-success" type="submit">Complete</button></form>{% else %}-{% endif %}</td>
+</tr>
+{% else %}<tr><td colspan="6" class="empty">No follow-ups have been scheduled.</td></tr>{% endfor %}
+</tbody></table></section>
+{% endblock %}

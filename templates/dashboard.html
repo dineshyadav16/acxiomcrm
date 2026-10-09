@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | AcxiomCRM{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<div class="summary-grid">
+    <section class="summary-card"><span>Total Customers</span><strong>{{ customer_count }}</strong></section>
+    <section class="summary-card"><span>Open Leads</span><strong>{{ open_lead_count }}</strong></section>
+    <section class="summary-card"><span>Open Opportunities</span><strong>{{ opportunity_count }}</strong></section>
+    <section class="summary-card"><span>Planned Follow-ups</span><strong>{{ followup_count }}</strong></section>
+    <section class="summary-card"><span>Pipeline Value</span><strong>₹{{ "{:,.0f}".format(pipeline_value) }}</strong></section>
+    <section class="summary-card"><span>Weighted Pipeline</span><strong>₹{{ "{:,.0f}".format(weighted_value) }}</strong></section>
+</div>
+<div class="chart-grid">
+    <section class="card"><h2>Lead Status</h2><canvas id="leadChart"></canvas></section>
+    <section class="card"><h2>Opportunity Pipeline</h2><canvas id="pipelineChart"></canvas></section>
+    <section class="card chart-wide"><h2>Monthly Won Opportunities</h2><canvas id="salesChart"></canvas></section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const leadLabels = {{ lead_statuses|tojson }};
+const leadCounts = {{ lead_counts|tojson }};
+const stageLabels = {{ stages|tojson }};
+const stageAmounts = {{ stage_values|tojson }};
+const monthLabels = {{ month_labels|tojson }};
+const monthlyAmounts = {{ monthly_sales|tojson }};
+
+new Chart(document.getElementById('leadChart'), {
+    type: 'doughnut',
+    data: { labels: leadLabels, datasets: [{ data: leadCounts }] }
+});
+new Chart(document.getElementById('pipelineChart'), {
+    type: 'bar',
+    data: { labels: stageLabels, datasets: [{ label: 'Amount (₹)', data: stageAmounts }] },
+    options: { scales: { y: { beginAtZero: true } } }
+});
+new Chart(document.getElementById('salesChart'), {
+    type: 'line',
+    data: { labels: monthLabels, datasets: [{ label: 'Won amount (₹)', data: monthlyAmounts, tension: 0.2 }] },
+    options: { scales: { y: { beginAtZero: true } } }
+});
+</script>
+{% endblock %}

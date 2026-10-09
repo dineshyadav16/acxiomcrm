@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ "Edit Customer" if customer else "Add Customer" }} | AcxiomCRM{% endblock %}
+{% block content %}
+<h1>{{ "Edit Customer" if customer else "Add Customer" }}</h1>
+<section class="card form-card">
+<form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="name">Customer Name *</label>
+    <input id="name" name="name" value="{{ customer.name if customer else '' }}" required>
+    <label for="email">Email *</label>
+    <input id="email" type="email" name="email" value="{{ customer.email if customer else '' }}" required>
+    <label for="phone">Phone *</label>
+    <input id="phone" name="phone" value="{{ customer.phone if customer else '' }}" required>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+        <option value="Active" {% if not customer or customer.status == 'Active' %}selected{% endif %}>Active</option>
+        <option value="Inactive" {% if customer and customer.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+    <label for="notes">Notes</label>
+    <textarea id="notes" name="notes" rows="3">{{ customer.notes if customer else '' }}</textarea>
+    <div class="form-actions"><button class="btn btn-success" type="submit">Save Customer</button><a class="btn btn-secondary" href="{{ url_for('customers.customers') }}">Cancel</a></div>
+</form>
+</section>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Reports | AcxiomCRM{% endblock %}
+{% block content %}
+<h1>Reports</h1>
+<section class="card">
+    <p>Download a CSV file to open in Excel or another spreadsheet application.</p>
+    <div class="report-links">
+        <a class="btn btn-success" href="{{ url_for('admin.export_csv', report_type='customers') }}">Download Customers</a>
+        <a class="btn btn-success" href="{{ url_for('admin.export_csv', report_type='leads') }}">Download Leads</a>
+        <a class="btn btn-success" href="{{ url_for('admin.export_csv', report_type='opportunities') }}">Download Opportunities</a>
+    </div>
+</section>
+{% endblock %}

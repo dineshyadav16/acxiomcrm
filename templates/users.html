@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}User Administration | AcxiomCRM{% endblock %}
+{% block content %}
+<div class="page-heading"><h1>User Administration</h1><a class="btn btn-success" href="{{ url_for('admin.user_create') }}">+ Add User</a></div>
+<section class="card table-card"><table>
+<thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+<tbody>{% for user in users %}
+<tr><td>{{ user.id }}</td><td>{{ user.username }}</td><td>{{ user.email }}</td><td>{{ user.role }}</td>
+<td>{{ "Active" if user.is_active else "Inactive" }}{% if user.is_locked %} / Locked{% endif %}</td>
+<td>{% if user.is_locked %}<form method="post" action="{{ url_for('admin.user_unlock', record_id=user.id) }}" class="inline-form"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-small" type="submit">Unlock</button></form>{% else %}-{% endif %}</td></tr>
+{% endfor %}</tbody></table></section>
+{% endblock %}

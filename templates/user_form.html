@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Create User | AcxiomCRM{% endblock %}
+{% block content %}
+<h1>Create User</h1>
+<section class="card form-card"><form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">Username *</label><input id="username" name="username" required>
+    <label for="email">Email *</label><input id="email" type="email" name="email" required>
+    <label for="password">Password *</label><input id="password" type="password" name="password" minlength="8" required>
+    <p class="help-text">Use uppercase and lowercase letters, a number and a special symbol.</p>
+    <label for="role">Role</label><select id="role" name="role"><option>Sales Executive</option><option>Manager</option><option>Admin</option></select>
+    <div class="form-actions"><button class="btn btn-success" type="submit">Create User</button><a class="btn btn-secondary" href="{{ url_for('admin.users') }}">Cancel</a></div>
+</form></section>
+{% endblock %}

@@ -1,65 +1,95 @@
-import unittest, json, os
-os.environ['SECRET_KEY'] = 'test-secret-key-2026'
-from datetime import datetime, date, timedelta
-from app import app, db, User, Customer, Lead, Opportunity, FollowUp, AuditLog, valid_email, valid_phone, valid_pwd
-from seed import seed_database
+"""Small automated tests for the main CRM rules."""
 
-class TestAcxiomCRM(unittest.TestCase):
+import json
+import os
+import unittest
+
+# Tests use their own temporary key. Never use this value for deployment.
+os.environ.setdefault("SECRET_KEY", "test-only-secret-key")
+
+from app import app
+from extensions import db
+from models import Lead
+from seed import seed_database
+from validators import valid_email, valid_phone, valid_pwd
+
+
+class AcxiomCRMTests(unittest.TestCase):
     def setUp(self):
-        app.config['TESTING'] = True
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
-        app.config['WTF_CSRF_ENABLED'] = False
-        self.app = app
-        self.client = self.app.test_client()
-        with self.app.app_context():
+        app.config.update(
+            TESTING=True,
+            WTF_CSRF_ENABLED=False,
+            SQLALCHEMY_DATABASE_URI="sqlite:///:memory:",
+        )
+        self.client = app.test_client()
+
+        with app.app_context():
+            db.drop_all()
             db.create_all()
-            seed_database(self.app)
+            seed_database()
 
     def tearDown(self):
-        with self.app.app_context():
+        with app.app_context():
             db.session.remove()
             db.drop_all()
 
-    def test_validators(self):
-        self.assertTrue(valid_email('user@domain.com'))
-        self.assertFalse(valid_email('bad-email'))
-        self.assertTrue(valid_phone('+1-555-0199'))
-        self.assertFalse(valid_phone('123'))
-        v_p, _ = valid_pwd('Admin@123456')
-        self.assertTrue(v_p)
+    def login(self, username, password):
+        return self.client.post(
+            "/login",
+            data={"username": username, "password": password},
+            follow_redirects=True,
+        )
 
-    def test_account_lockout(self):
-        for i in range(4):
-            res = self.client.post('/login', data={'username': 'sales1', 'password': 'WrongPassword123'}, follow_redirects=True)
-            self.assertIn(b'Invalid credentials', res.data)
+    def test_input_validation(self):
+        self.assertTrue(valid_email("person@example.in"))
+        self.assertFalse(valid_email("not-an-email"))
+        self.assertTrue(valid_phone("+91 9876543210"))
+        self.assertFalse(valid_phone("123"))
+        self.assertTrue(valid_pwd("Admin@123456")[0])
+        self.assertFalse(valid_pwd("weak")[0])
 
-        res5 = self.client.post('/login', data={'username': 'sales1', 'password': 'WrongPassword123'}, follow_redirects=True)
-        self.assertIn(b'Account locked', res5.data)
+    def test_five_bad_passwords_lock_the_account(self):
+        for _ in range(4):
+            response = self.login("sales1", "incorrect-password")
+            self.assertIn(b"Invalid credentials", response.data)
 
-    def test_rbac_user_management(self):
-        self.client.post('/login', data={'username': 'sales1', 'password': 'Sales@123456'}, follow_redirects=True)
-        res = self.client.get('/users', follow_redirects=True)
-        self.assertIn(b'Access denied', res.data)
+        response = self.login("sales1", "incorrect-password")
+        self.assertIn(b"Account locked", response.data)
 
-        self.client.get('/logout', follow_redirects=True)
-        self.client.post('/login', data={'username': 'admin', 'password': 'Admin@123456'}, follow_redirects=True)
-        res_admin = self.client.get('/users', follow_redirects=True)
-        self.assertIn(b'User Administration', res_admin.data)
+    def test_only_admin_can_open_user_management(self):
+        self.login("sales1", "Sales@123456")
+        response = self.client.get("/users", follow_redirects=True)
+        self.assertIn(b"Access denied", response.data)
 
-    def test_lead_conversion_workflow(self):
-        self.client.post('/login', data={'username': 'admin', 'password': 'Admin@123456'}, follow_redirects=True)
-        with self.app.app_context():
-            lead_id = Lead.query.filter_by(contact_name='Robert Chen').first().id
+        self.client.post("/logout", follow_redirects=True)
+        self.login("admin", "Admin@123456")
+        response = self.client.get("/users", follow_redirects=True)
+        self.assertIn(b"User Administration", response.data)
 
-        res = self.client.post(f'/leads/{lead_id}/convert', data={'amount': '25000.00'}, follow_redirects=True)
-        self.assertIn(b'Lead converted to Customer', res.data)
+    def test_lead_can_be_converted(self):
+        self.login("admin", "Admin@123456")
+        with app.app_context():
+            lead_id = Lead.query.filter_by(contact_name="Ravi Kumar").first().id
 
-    def test_rest_api(self):
-        login_res = self.client.post('/api/v1/auth/login', data=json.dumps({'username': 'admin', 'password': 'Admin@123456'}), content_type='application/json')
-        self.assertEqual(login_res.status_code, 200)
+        response = self.client.post(
+            f"/leads/{lead_id}/convert",
+            data={"amount": "350000"},
+            follow_redirects=True,
+        )
+        self.assertIn(b"Lead converted to Customer", response.data)
 
-        cust_res = self.client.get('/api/v1/customers')
-        self.assertEqual(cust_res.status_code, 200)
+    def test_api_login_and_customer_list(self):
+        response = self.client.post(
+            "/api/v1/auth/login",
+            data=json.dumps({"username": "admin", "password": "Admin@123456"}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
 
-if __name__ == '__main__':
-    unittest.main()
+        response = self.client.get("/api/v1/customers")
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(any(item["name"] == "ABC Technologies" for item in response.json))
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
